@@ -1,4 +1,4 @@
-pragma solidity 0.4.26;
+pragma solidity 0.5.16;
 
 import 'ICompleteSets.sol';
 import 'IAugurLite.sol';
@@ -32,7 +32,8 @@ contract CompleteSets is Controlled, ReentrancyGuard, MarketValidator, IComplete
     IAugurLite _augurLite = controller.getAugurLite();
 
     uint256 _cost = _amount.mul(_market.getNumTicks());
-    require(_augurLite.trustedTransfer(_denominationToken, _sender, _market, _cost), "Augur trustedTransfer failed");
+    //TODO:
+    require(_augurLite.trustedTransfer(_denominationToken, _sender, address(_market), _cost), "Augur trustedTransfer failed");
     for (uint256 _outcome = 0; _outcome < _numOutcomes; ++_outcome) {
       _market.getShareToken(_outcome).createShares(_sender, _amount);
     }
@@ -62,9 +63,10 @@ contract CompleteSets is Controlled, ReentrancyGuard, MarketValidator, IComplete
     }
 
     if (_creatorFee != 0) {
-      require(_denominationToken.transferFrom(_market, _market.getMarketCreatorMailbox(), _creatorFee), "Denomination token transfer failed");
+      //TODO:
+      require(_denominationToken.transferFrom(address(_market), address (_market.getMarketCreatorMailbox()), _creatorFee), "Denomination token transfer failed");
     }
-    require(_denominationToken.transferFrom(_market, _sender, _payout), "Denomination token transfer failed");
+    require(_denominationToken.transferFrom(address(_market), _sender, _payout), "Denomination token transfer failed");
 
     return true;
   }

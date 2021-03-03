@@ -13,7 +13,7 @@
     "watch": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "alwaysStrict": true,
+    "alwaysStrict": false,
     "allowJs": false,
     "allowSyntheticDefaultImports": false,
     "allowUnreachableCode": false,
@@ -26,8 +26,8 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "strict": true,
-    "strictFunctionTypes": true,
-    "strictNullChecks": true
+    "strict": false,
+    "strictFunctionTypes": false,
+    "strictNullChecks": false
   }
 }

@@ -1,4 +1,4 @@
-pragma solidity 0.4.26;
+pragma solidity 0.5.16;
 
 import 'IMarket.sol';
 import 'IMailbox.sol';
@@ -80,7 +80,7 @@ contract Market is DelegationTarget, ITyped, Initializable, Ownable, IMarket {
     return true;
   }
 
-  function resolve(uint256[] _payoutNumerators, bool _invalid) public onlyInGoodTimes returns (bool) {
+  function resolve(uint256[] memory _payoutNumerators, bool _invalid) public onlyInGoodTimes returns (bool) {
     uint256 _timestamp = controller.getTimestamp();
     require(!isResolved(), "Market is already resolved");
     require(_timestamp > endTime, "Market is not expired");
@@ -175,7 +175,7 @@ contract Market is DelegationTarget, ITyped, Initializable, Ownable, IMarket {
     return true;
   }
 
-  function verifyResolutionInformation(uint256[] _payoutNumerators, bool _invalid) public view returns (bool) {
+  function verifyResolutionInformation(uint256[] memory _payoutNumerators, bool _invalid) public view returns (bool) {
     uint256 _sum = 0;
     uint256 _previousValue = _payoutNumerators[0];
     require(_payoutNumerators.length == numOutcomes, "payoutNumerators array is missing outcomes");
@@ -205,7 +205,7 @@ contract Market is DelegationTarget, ITyped, Initializable, Ownable, IMarket {
       _expectedBalance = _expectedBalance.add(shareTokens[0].totalSupply().mul(numTicks));
     }
 
-    assert(denominationToken.balanceOf(this) >= _expectedBalance);
+    assert(denominationToken.balanceOf(address(this)) >= _expectedBalance);
     return true;
   }
 }

@@ -1,4 +1,4 @@
-export type Primitive = 
+export type Primitive =
   | "uint8"
   | "uint64"
   | "uint256"
@@ -19,7 +19,8 @@ export type Primitive =
   | "bytes32[100]"
   | "bytes32[200]"
   | "bytes32[500]"
-  | "bytes32[1000]";
+  | "bytes32[1000]"
+  | "internalType";
 
 export interface AbiParameter {
   name: string;

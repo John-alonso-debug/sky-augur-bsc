@@ -1,4 +1,4 @@
-pragma solidity 0.4.26;
+pragma solidity 0.5.16;
 
 import 'Controlled.sol';
 import 'IMarket.sol';
@@ -16,7 +16,9 @@ contract ClaimTradingProceeds is ReentrancyGuard, MarketValidator {
   using SafeMathUint256 for uint256;
 
   function claimTradingProceeds(IMarket _market, address _shareHolder) marketIsLegit(_market) onlyInGoodTimes nonReentrant external returns(bool) {
-    // NOTE: this requirement does _not_ enforce market finalization. That requirement occurs later on in this function when calling getPayoutNumerator. When this requirement is removed we may want to consider explicitly requiring it here (or modifying this comment and keeping the gas savings)
+    // NOTE: this requirement does _not_ enforce market finalization. That requirement occurs later on in this function
+    //when calling getPayoutNumerator. When this requirement is removed we may want to consider explicitly
+    //requiring it here (or modifying this comment and keeping the gas savings)
     require(controller.getTimestamp() > _market.getResolutionTime(), "Resolution time is not in the past");
 
     ERC20 denominationToken = _market.getDenominationToken();
@@ -32,13 +34,14 @@ contract ClaimTradingProceeds is ReentrancyGuard, MarketValidator {
       // always destroy shares as it gives a minor gas refund and is good for the network
       if (_numberOfShares > 0) {
         _shareToken.destroyShares(_shareHolder, _numberOfShares);
-        logTradingProceedsClaimed(_market, _shareToken, _shareHolder, _numberOfShares, _shareHolderShare);
+       //TODO:
+        logTradingProceedsClaimed(_market,address(_shareToken), _shareHolder, _numberOfShares, _shareHolderShare);
       }
       if (_shareHolderShare > 0) {
-        require(denominationToken.transferFrom(_market, _shareHolder, _shareHolderShare), "Denomination token transfer failed");
+        require(denominationToken.transferFrom(address(_market), _shareHolder, _shareHolderShare), "Denomination token transfer failed");
       }
       if (_creatorShare > 0) {
-        require(denominationToken.transferFrom(_market, _market.getMarketCreatorMailbox(), _creatorShare), "Denomination token transfer failed");
+        require(denominationToken.transferFrom(address(_market), address(_market.getMarketCreatorMailbox()), _creatorShare), "Denomination token transfer failed");
       }
     }
 
@@ -48,7 +51,7 @@ contract ClaimTradingProceeds is ReentrancyGuard, MarketValidator {
   }
 
   function logTradingProceedsClaimed(IMarket _market, address _shareToken, address _sender, uint256 _numShares, uint256 _numPayoutTokens) private returns (bool) {
-    controller.getAugurLite().logTradingProceedsClaimed(_market.getUniverse(), _shareToken, _sender, _market, _numShares, _numPayoutTokens, _market.getDenominationToken().balanceOf(_sender).add(_numPayoutTokens));
+    controller.getAugurLite().logTradingProceedsClaimed(_market.getUniverse(), _shareToken, _sender,address(_market), _numShares, _numPayoutTokens, _market.getDenominationToken().balanceOf(_sender).add(_numPayoutTokens));
     return true;
   }
 

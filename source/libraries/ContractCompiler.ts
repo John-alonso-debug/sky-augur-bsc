@@ -16,10 +16,12 @@ export class ContractCompiler {
   private readonly configuration: CompilerConfiguration;
   private readonly flattenerBin = "solidity_flattener";
   private readonly flattenerCommand: string;
+  private readonly flattenerFileCommand: string;
 
   public constructor(configuration: CompilerConfiguration) {
     this.configuration = configuration;
     this.flattenerCommand = `${this.flattenerBin} --allow-path . %s`;
+    this.flattenerFileCommand = `${this.flattenerBin} --allow-path . %s --output=%s`;
   }
 
   private async getCommandOutputFromInput(
@@ -140,10 +142,21 @@ export class ContractCompiler {
       .replace(this.configuration.contractSourceRoot, "")
       .replace(/\\/g, "/");
 
+    const outFile = this.configuration.flattenContractOutputRoot+relativeFilePath;
+    console.warn(`outFile`,outFile)
+    console.warn(`flattenerFileCommand`,format(this.flattenerFileCommand, relativeFilePath,outFile))
+    const childProcess_flatten_contract_output = exec(format(this.flattenerFileCommand, relativeFilePath,outFile), {
+      encoding: "buffer",
+      cwd: this.configuration.contractSourceRoot
+    });
+
+    await this.getCommandOutputFromInput(childProcess_flatten_contract_output, "");
+
     const childProcess = exec(format(this.flattenerCommand, relativeFilePath), {
       encoding: "buffer",
       cwd: this.configuration.contractSourceRoot
     });
+
     return await this.getCommandOutputFromInput(childProcess, "");
   }
 
@@ -155,6 +168,9 @@ export class ContractCompiler {
       this.configuration.contractSourceRoot,
       [ignoreFile]
     );
+
+
+    console.log(`what is the filePath`,filePaths)
     const filesPromises = filePaths.map(
       async filePath => await this.generateFlattenedSolidity(filePath)
     );

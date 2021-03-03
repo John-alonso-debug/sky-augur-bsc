@@ -113,6 +113,11 @@ export class TestFixture {
     if (!marketAddress || marketAddress == "0x") {
       throw new Error("Unable to get address for new categorical market.");
     }
+    console.log(`endTime,${endTime}\n' +
+      '      feePerEthInWei,${feePerEthInWei}\n' +
+      '      denominationToken,${denominationToken}\n' +
+      '      designatedReporter,${designatedReporter}\n' +
+      '      outcomes,${outcomes}`)
     await universe.createCategoricalMarket(
       endTime,
       feePerEthInWei,

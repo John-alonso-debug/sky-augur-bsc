@@ -1,6 +1,6 @@
 import { hash } from "crypto-promise";
 import { exists, readFile, writeFile } from "async-file";
-import { exec } from "child_process";
+//import { exec } from "child_process";
 import { encodeParams } from "ethjs-abi";
 import { TransactionReceipt } from "ethjs-shared";
 import { stringTo32ByteHex, resolveAll } from "./HelperFunctions";
@@ -49,7 +49,7 @@ export class ContractDeployer {
     );
 
     console.log(`\n\n-----------------
-Deploying to: ${networkConfiguration.networkName}
+    Deploying to: ${networkConfiguration.networkName}
     compiled contracts: ${deployerConfiguration.contractInputPath}
     contract address: ${deployerConfiguration.contractAddressesOutputPath}
     upload blocks #s: ${deployerConfiguration.uploadBlockNumbersOutputPath}
@@ -114,18 +114,18 @@ Deploying to: ${networkConfiguration.networkName}
     return controlled;
   };
 
-  private static async getGitCommit(): Promise<string> {
-    // If we couldn't get the hash from a git repo, try to get it from NPM
-    return await new Promise<string>((resolve, reject) => {
-      exec("npm show . gitHead", (error, stdout, stderr) => {
-        if (error) {
-          console.log(stderr);
-          return reject(error);
-        }
-        resolve(`0x${stdout.trim()}`);
-      });
-    });
-  }
+  // private static async getGitCommit(): Promise<string> {
+  //   // If we couldn't get the hash from a git repo, try to get it from NPM
+  //   return await new Promise<string>((resolve, reject) => {
+  //     exec("npm show . gitHead", (error, stdout, stderr) => {
+  //       if (error) {
+  //         console.log(stderr);
+  //         return reject(error);
+  //       }
+  //       resolve(`0x${stdout.trim()}`);
+  //     });
+  //   });
+  // }
 
   private static async getBytecodeSha(bytecode: Buffer): Promise<string> {
     const digest = await hash("sha256")(bytecode);
@@ -188,7 +188,8 @@ Deploying to: ${networkConfiguration.networkName}
       [],
       `Uploading ${contract.contractName}`
     );
-    const commitHash = await ContractDeployer.getGitCommit();
+    //TODO: remove hash
+    //const commitHash = await ContractDeployer.getGitCommit();
     const bytecodeHash = await ContractDeployer.getBytecodeSha(
       contract.bytecode
     );
@@ -207,7 +208,6 @@ Deploying to: ${networkConfiguration.networkName}
     await this.controller.registerContract(
       stringTo32ByteHex("AugurLite"),
       address,
-      commitHash,
       bytecodeHash
     );
   }
@@ -225,6 +225,8 @@ Deploying to: ${networkConfiguration.networkName}
     const contractsToDelegate: { [key: string]: boolean } = {
       TestNetDenominationToken: true
     };
+
+    console.log('is production',this.configuration.isProduction)
 
     const contractName = contract.contractName;
     if (contractName === "Controller") return;
@@ -312,14 +314,13 @@ Deploying to: ${networkConfiguration.networkName}
       constructorArgs,
       `Uploading ${contract.contractName}`
     );
-    const commitHash = await ContractDeployer.getGitCommit();
+    //const commitHash = await ContractDeployer.getGitCommit();
     const bytecodeHash = await ContractDeployer.getBytecodeSha(
       contract.bytecode
     );
     await this.controller.registerContract(
       stringTo32ByteHex(registrationContractName),
       address,
-      commitHash,
       bytecodeHash
     );
     return address;

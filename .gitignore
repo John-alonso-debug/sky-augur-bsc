@@ -16,6 +16,8 @@ __pycache__/
 env/
 venv/
 build/
+node_modules/
+output/
 develop-eggs/
 dist/
 eggs/

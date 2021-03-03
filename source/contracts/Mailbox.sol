@@ -1,4 +1,4 @@
-pragma solidity 0.4.26;
+pragma solidity 0.5.16;
 
 import 'IMailbox.sol';
 import 'IMarket.sol';
@@ -19,7 +19,7 @@ contract Mailbox is DelegationTarget, Ownable, Initializable, IMailbox {
   }
 
   function withdrawTokens(ERC20Basic _token) public onlyOwner returns (bool) {
-    uint256 _balance = _token.balanceOf(this);
+    uint256 _balance = _token.balanceOf(address(this));
     require(_token.transfer(owner, _balance), "Token transfer failed");
     return true;
   }

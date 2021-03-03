@@ -17,7 +17,7 @@ const networks: Networks = {
     isProduction: false,
     http: process.env.KOVAN_ETHEREUM_HTTP!,
     privateKey: process.env.KOVAN_PRIVATE_KEY!,
-    gasPrice: new BN(1)
+    gasPrice: new BN(20 * 1000000000)
   },
   rinkeby: {
     isProduction: false,
@@ -41,9 +41,15 @@ const networks: Networks = {
     ).mul(new BN(1000000000))
   },
   testrpc: {
-    isProduction: false,
+    isProduction: true,
     http: "http://localhost:8545",
-    gasPrice: new BN(1),
+    gasPrice: new BN(20 * 1000000000),
+    privateKey: process.env.TESTRPC_PRIVATE_KEY!
+  },
+  testmain: {
+    isProduction: true,
+    http: "http://localhost:8545",
+    gasPrice: new BN(20 * 1000000000),
     privateKey: process.env.TESTRPC_PRIVATE_KEY!
   }
 };
@@ -79,6 +85,7 @@ export class NetworkConfiguration {
         `Network configuration for ${networkName} has no private key available. Check that this key is in the environment ${networkName.toUpperCase()}_PRIVATE_KEY`
       );
 
+    console.log('network:',network)
     return new NetworkConfiguration(
       networkName,
       network.http,
