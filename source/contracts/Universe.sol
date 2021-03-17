@@ -87,7 +87,9 @@ contract Universe is DelegationTarget, Initializable, ITyped, IUniverse {
       msg.sender,
       uint256(_outcomes.length),
       10000);
+   // IShareToken shareToken = _newMarket.getShareToken(_newMarket.getNumTicks());
     controller.getAugurLite().logMarketCreated(
+    // shareToken,
       _topic,
         _description,
         _extraInfo,

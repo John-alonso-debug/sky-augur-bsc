@@ -25,6 +25,8 @@ contract IAugurLite {
     int256 _maxPrice,
     IMarket.MarketType _marketType) public returns (bool);
   function logMarketResolved(IUniverse _universe) public returns (bool);
+
+  function logShareTokensCreated(IShareToken[] memory _shareTokens, address _market) public returns (bool);
   function logCompleteSetsPurchased(IUniverse _universe, IMarket _market, address _account, uint256 _numCompleteSets) public returns (bool);
   function logCompleteSetsSold(IUniverse _universe, IMarket _market, address _account, uint256 _numCompleteSets) public returns (bool);
   function logTradingProceedsClaimed(IUniverse _universe, address _shareToken, address _sender, address _market, uint256 _numShares, uint256 _numPayoutTokens, uint256 _finalTokenBalance) public returns (bool);
@@ -102,7 +104,8 @@ contract MarketFactory {
   function createMarket(IController _controller, IUniverse _universe, uint256 _endTime, uint256 _feeDivisor, ERC20 _denominationToken, address _oracle, address _sender, uint256 _numOutcomes, uint256 _numTicks) public returns (IMarket _market) {
     Delegator _delegator = new Delegator(_controller, "Market");
     _market = IMarket(address(_delegator));
-    _market.initialize(_universe, _endTime, _feeDivisor, _denominationToken, _oracle, _sender, _numOutcomes, _numTicks);
+    IShareToken[] memory _shareTokens =_market.initialize(_universe, _endTime, _feeDivisor, _denominationToken, _oracle, _sender, _numOutcomes, _numTicks);
+    _controller.getAugurLite().logShareTokensCreated(_shareTokens,address(_market));
     return _market;
   }
 }
@@ -171,7 +174,7 @@ contract IMarket is ITyped, IOwnable {
     SCALAR
   }
 
-  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feePerEthInAttoeth, ERC20 _denominationToken, address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public returns (bool _success);
+  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feePerEthInAttoeth, ERC20 _denominationToken, address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public returns (IShareToken[] memory _shareToken);
   function getUniverse() public view returns (IUniverse);
   function getNumberOfOutcomes() public view returns (uint256);
   function getNumTicks() public view returns (uint256);
@@ -296,7 +299,9 @@ contract Universe is DelegationTarget, Initializable, ITyped, IUniverse {
       msg.sender,
       uint256(_outcomes.length),
       10000);
+   // IShareToken shareToken = _newMarket.getShareToken(_newMarket.getNumTicks());
     controller.getAugurLite().logMarketCreated(
+    // shareToken,
       _topic,
         _description,
         _extraInfo,

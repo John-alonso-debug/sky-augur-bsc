@@ -42,7 +42,8 @@ contract Market is DelegationTarget, ITyped, Initializable, Ownable, IMarket {
   uint256[] private payoutNumerators;
   IShareToken[] private shareTokens;
 
-  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feeDivisor, ERC20 _denominationToken, address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public onlyInGoodTimes beforeInitialized returns (bool _success) {
+  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feeDivisor, ERC20 _denominationToken,
+    address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public onlyInGoodTimes beforeInitialized returns (IShareToken[] memory _shareToken) {
     endInitialization();
     require(MIN_OUTCOMES <= _numOutcomes && _numOutcomes <= MAX_OUTCOMES, "Invalid number of outcomes");
     require(_numTicks > 0, "numTicks needs to be greater than 0");
@@ -66,7 +67,7 @@ contract Market is DelegationTarget, ITyped, Initializable, Ownable, IMarket {
       shareTokens.push(createShareToken(_outcome));
     }
     approveSpenders();
-    return true;
+    return shareTokens;
   }
 
   function createShareToken(uint256 _outcome) private onlyInGoodTimes returns (IShareToken) {

@@ -14,8 +14,8 @@ library address_make_payable {
 contract TestNetDenominationToken is DelegationTarget, ITyped, VariableSupplyToken {
 
   string constant public name = "TestNetDenominationToken";
-  string constant public symbol = "TNDT";
-  uint8 constant public decimals = 18;
+  string constant public symbol = "USDT";
+  uint8 constant public decimals = 6;
 
   function depositEther() public payable returns (bool) {
     mint(msg.sender, msg.value);

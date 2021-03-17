@@ -204,7 +204,7 @@ export class ContractDeployer {
     console.log(`AugurLite address: ${address}`);
     console.log(`Setting controller...`);
     await augurLite.setController(this.controller.address);
-    console.log(`Registering the AugurLite contract with the controller...`);
+    console.log(`Registering the AugurLite contract with the controller...`,contract.bytecode);
     await this.controller.registerContract(
       stringTo32ByteHex("AugurLite"),
       address,
@@ -297,6 +297,12 @@ export class ContractDeployer {
       stringTo32ByteHex(delegationTargetName)
     ];
     await this.uploadAndAddToController(contract, delegationTargetName);
+    console.log(`delegationTargetNameis ${delegationTargetName}`)
+    console.log(`this.contracts.get("Delegator") is ${JSON.stringify(this.contracts.get("Delegator"))}`)
+
+    console.log(`contract.contractName is ${contract.contractName}`)
+
+    console.log(`delegatorConstructorArgs is ${delegatorConstructorArgs}`)
     return await this.uploadAndAddToController(
       this.contracts.get("Delegator"),
       contract.contractName,
@@ -318,6 +324,9 @@ export class ContractDeployer {
     const bytecodeHash = await ContractDeployer.getBytecodeSha(
       contract.bytecode
     );
+    console.log(`registerContract`,registrationContractName,address)
+    console.log(`contract.bytecode`,contract.bytecode)
+    console.log(`bytecodeHash`,bytecodeHash)
     await this.controller.registerContract(
       stringTo32ByteHex(registrationContractName),
       address,

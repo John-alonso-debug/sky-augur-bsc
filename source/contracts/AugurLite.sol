@@ -20,6 +20,8 @@ contract AugurLite is Controlled, IAugurLite {
   event MarketCreated(bytes32 indexed topic, string description, string extraInfo, address indexed universe,
     address market, address indexed marketCreator, bytes32[] outcomes,
     uint256 marketCreationFee, int256 minPrice, int256 maxPrice, IMarket.MarketType marketType);
+
+  event ShareTokenCreated(IShareToken[]  _shareTokens, address _market);
   event MarketResolved(address indexed universe, address indexed market);
   event UniverseCreated(address indexed universe, ERC20 denominationToken);
   event CompleteSetsPurchased(address indexed universe, address indexed market, address indexed account, uint256 numCompleteSets);
@@ -66,7 +68,11 @@ contract AugurLite is Controlled, IAugurLite {
   //
   // Logging
   //
+   function logShareTokensCreated(IShareToken[] memory _shareTokens, address _market) public returns(bool){
+     emit ShareTokenCreated(_shareTokens,_market);
+     return true;
 
+   }
   // This signature is intended for the categorical market creation. We use two signatures for the same event because of stack depth issues which can be circumvented by maintaining order of paramaters
   function logMarketCreated(bytes32 _topic, string memory _description, string memory _extraInfo, IUniverse _universe, address _market, address _marketCreator, bytes32[] memory _outcomes, int256 _minPrice, int256 _maxPrice, IMarket.MarketType _marketType) public returns (bool) {
     require(isKnownUniverse(_universe), "The universe is not known");

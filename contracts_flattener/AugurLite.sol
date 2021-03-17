@@ -25,6 +25,8 @@ contract IAugurLite {
     int256 _maxPrice,
     IMarket.MarketType _marketType) public returns (bool);
   function logMarketResolved(IUniverse _universe) public returns (bool);
+
+  function logShareTokensCreated(IShareToken[] memory _shareTokens, address _market) public returns (bool);
   function logCompleteSetsPurchased(IUniverse _universe, IMarket _market, address _account, uint256 _numCompleteSets) public returns (bool);
   function logCompleteSetsSold(IUniverse _universe, IMarket _market, address _account, uint256 _numCompleteSets) public returns (bool);
   function logTradingProceedsClaimed(IUniverse _universe, address _shareToken, address _sender, address _market, uint256 _numShares, uint256 _numPayoutTokens, uint256 _finalTokenBalance) public returns (bool);
@@ -93,6 +95,8 @@ contract AugurLite is Controlled, IAugurLite {
   event MarketCreated(bytes32 indexed topic, string description, string extraInfo, address indexed universe,
     address market, address indexed marketCreator, bytes32[] outcomes,
     uint256 marketCreationFee, int256 minPrice, int256 maxPrice, IMarket.MarketType marketType);
+
+  event ShareTokenCreated(IShareToken[]  _shareTokens, address _market);
   event MarketResolved(address indexed universe, address indexed market);
   event UniverseCreated(address indexed universe, ERC20 denominationToken);
   event CompleteSetsPurchased(address indexed universe, address indexed market, address indexed account, uint256 numCompleteSets);
@@ -139,7 +143,11 @@ contract AugurLite is Controlled, IAugurLite {
   //
   // Logging
   //
+   function logShareTokensCreated(IShareToken[] memory _shareTokens, address _market) public returns(bool){
+     emit ShareTokenCreated(_shareTokens,_market);
+     return true;
 
+   }
   // This signature is intended for the categorical market creation. We use two signatures for the same event because of stack depth issues which can be circumvented by maintaining order of paramaters
   function logMarketCreated(bytes32 _topic, string memory _description, string memory _extraInfo, IUniverse _universe, address _market, address _marketCreator, bytes32[] memory _outcomes, int256 _minPrice, int256 _maxPrice, IMarket.MarketType _marketType) public returns (bool) {
     require(isKnownUniverse(_universe), "The universe is not known");
@@ -324,7 +332,7 @@ contract IMarket is ITyped, IOwnable {
     SCALAR
   }
 
-  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feePerEthInAttoeth, ERC20 _denominationToken, address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public returns (bool _success);
+  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feePerEthInAttoeth, ERC20 _denominationToken, address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public returns (IShareToken[] memory _shareToken);
   function getUniverse() public view returns (IUniverse);
   function getNumberOfOutcomes() public view returns (uint256);
   function getNumTicks() public view returns (uint256);

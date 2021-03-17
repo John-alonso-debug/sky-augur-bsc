@@ -30,6 +30,8 @@ contract IAugurLite {
     int256 _maxPrice,
     IMarket.MarketType _marketType) public returns (bool);
   function logMarketResolved(IUniverse _universe) public returns (bool);
+
+  function logShareTokensCreated(IShareToken[] memory _shareTokens, address _market) public returns (bool);
   function logCompleteSetsPurchased(IUniverse _universe, IMarket _market, address _account, uint256 _numCompleteSets) public returns (bool);
   function logCompleteSetsSold(IUniverse _universe, IMarket _market, address _account, uint256 _numCompleteSets) public returns (bool);
   function logTradingProceedsClaimed(IUniverse _universe, address _shareToken, address _sender, address _market, uint256 _numShares, uint256 _numPayoutTokens, uint256 _finalTokenBalance) public returns (bool);

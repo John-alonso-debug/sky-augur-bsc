@@ -65,6 +65,7 @@ export class DeployerConfiguration {
         : isProduction;
     const genesisDenominationTokenAddress =
       process.env.GENESIS_DENOMINATION_TOKEN_ADDRESS;
+    console.log(`process.env.GENESIS_DENOMINATION_TOKEN_ADDRESS`,process.env.GENESIS_DENOMINATION_TOKEN_ADDRESS)
 
     if (
       isProduction &&
