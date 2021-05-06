@@ -1,18 +1,80 @@
 pragma solidity 0.5.16;
 
-import 'libraries/token/BasicToken.sol';
-import 'libraries/token/ERC20.sol';
-
+import 'libraries/token/SafeMath.sol';
+//import 'libraries/token/BEP20.sol';
+//import "libraries/token/BasicToken.sol";
 
 /**
- * @title Standard ERC20 token
+ * @title Standard BEP20 token
  *
  * @dev Implementation of the basic standard token.
  * @dev https://github.com/ethereum/EIPs/issues/20
  * @dev Based on code by FirstBlood: https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol
  */
-contract StandardToken is ERC20, BasicToken {
-  using SafeMathUint256 for uint256;
+/**
+ * @title Basic token
+ * @dev Basic version of StandardToken, with no allowances.
+ */
+//contract BEP20Basic {
+//  event Transfer(address indexed from, address indexed to, uint256 value);
+//
+//  function balanceOf(address _who) public view returns (uint256);
+//  function transfer(address _to, uint256 _value) public returns (bool);
+//  function totalSupply() public view returns (uint256);
+//}
+
+contract BasicToken  {
+  using SafeMath for uint256;
+
+  uint256 internal supply;
+  mapping(address => uint256) internal balances;
+
+  event Transfer(address indexed from, address indexed to, uint256 value);
+  /**
+  * @dev transfer token for a specified address
+  * @param _to The address to transfer to.
+  * @param _value The amount to be transferred.
+  */
+  function transfer(address _to, uint256 _value) public  returns(bool) {
+    return internalTransfer(msg.sender, _to, _value);
+  }
+
+  /**
+  * @dev allows internal token transfers
+  * @param _from The source address
+  * @param _to The destination address
+  */
+  function internalTransfer(address _from, address _to, uint256 _value) internal returns (bool) {
+    balances[_from] = balances[_from].sub(_value);
+    balances[_to] = balances[_to].add(_value);
+    emit Transfer(_from, _to, _value);
+    onTokenTransfer(_from, _to, _value);
+    return true;
+  }
+
+  /**
+  * @dev Gets the balance of the specified address.
+  * @param _owner The address to query the the balance of.
+  * @return An uint256 representing the amount owned by the passed address.
+  */
+  function balanceOf(address _owner) public view returns (uint256) {
+    return balances[_owner];
+  }
+
+  function totalSupply() public view returns (uint256) {
+    return supply;
+  }
+
+  // Subclasses of this token generally want to send additional logs through the centralized AugurLite log emitter contract
+  function onTokenTransfer(address _from, address _to, uint256 _value) internal returns (bool);
+}
+
+
+
+contract StandardToken is  BasicToken {
+//contract StandardToken is BEP20, BasicToken {
+  //using SafeMathUint256 for uint256;
+  using SafeMath for uint256;
 
   // Approvals of this amount are simply considered an everlasting approval which is not decremented when transfers occur
   uint256 public constant ETERNAL_APPROVAL_VALUE = 2 ** 256 - 1;
@@ -25,7 +87,9 @@ contract StandardToken is ERC20, BasicToken {
   * @param _to address The address which you want to transfer to
   * @param _value uint256 the amout of tokens to be transfered
   */
-  function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+
+
+  function transferFrom(address _from, address _to, uint256 _value) public  returns (bool) {
     uint256 _allowance = allowed[_from][msg.sender];
 
     if (_allowance != ETERNAL_APPROVAL_VALUE) {
@@ -86,7 +150,7 @@ contract StandardToken is ERC20, BasicToken {
 
   function approveInternal(address _owner, address _spender, uint256 _value) internal returns (bool) {
     allowed[_owner][_spender] = _value;
-    emit Approval(_owner, _spender, _value);
+    //emit Approval(_owner, _spender, _value);
     return true;
   }
 }

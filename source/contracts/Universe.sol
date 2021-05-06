@@ -6,20 +6,21 @@ import 'libraries/DelegationTarget.sol';
 import 'libraries/ITyped.sol';
 import 'libraries/Initializable.sol';
 import 'libraries/math/SafeMathUint256.sol';
-import 'libraries/token/ERC20.sol';
+import 'libraries/token/BEP20.sol';
 import 'factories/MarketFactory.sol';
 import "IAugurLite.sol";
+import 'libraries/token/IBEP20.sol';
 
 
 contract Universe is DelegationTarget, Initializable, ITyped, IUniverse {
   using SafeMathUint256 for uint256;
 
   mapping(address => bool) private markets;
-  ERC20 private denominationToken;
+  IBEP20 private denominationToken;
 
-  function initialize(ERC20 _denominationToken) external onlyInGoodTimes beforeInitialized returns (bool) {
+  function initialize(address _denominationToken) external onlyInGoodTimes beforeInitialized returns (bool) {
     endInitialization();
-    denominationToken = _denominationToken;
+    denominationToken = IBEP20(_denominationToken);
     return true;
   }
 
@@ -43,11 +44,11 @@ contract Universe is DelegationTarget, Initializable, ITyped, IUniverse {
     return _legitMarket.isContainerForShareToken(_shadyShareToken);
   }
 
-  function getDenominationToken() public view returns (ERC20) {
+  function getDenominationToken() public view returns (IBEP20) {
     return denominationToken;
   }
   //TODO:
-  function createYesNoMarket(uint256 _endTime, uint256 _feeDivisor, ERC20 _denominationToken, address _oracle, bytes32 _topic, string memory _description, string memory _extraInfo) public onlyInGoodTimes returns (IMarket _newMarket) {
+  function createYesNoMarket(uint256 _endTime, uint256 _feeDivisor, BEP20 _denominationToken, address _oracle, bytes32 _topic, string memory _description, string memory _extraInfo) public onlyInGoodTimes returns (IMarket _newMarket) {
     require(bytes(_description).length > 0, "Description is empty");
     _newMarket = createMarketInternal(
       _endTime,
@@ -73,7 +74,7 @@ contract Universe is DelegationTarget, Initializable, ITyped, IUniverse {
   function createCategoricalMarket(
     uint256 _endTime,
     uint256 _feeDivisor,
-    ERC20 _denominationToken,
+    BEP20 _denominationToken,
     address _oracle,
     bytes32[] memory _outcomes,
     bytes32 _topic,
@@ -103,7 +104,7 @@ contract Universe is DelegationTarget, Initializable, ITyped, IUniverse {
     return _newMarket;
   }
 
-  function createScalarMarket(uint256 _endTime, uint256 _feeDivisor, ERC20 _denominationToken, address _oracle, int256 _minPrice, int256 _maxPrice, uint256 _numTicks, bytes32 _topic, string memory _description, string memory _extraInfo) public onlyInGoodTimes returns (IMarket _newMarket) {
+  function createScalarMarket(uint256 _endTime, uint256 _feeDivisor, BEP20 _denominationToken, address _oracle, int256 _minPrice, int256 _maxPrice, uint256 _numTicks, bytes32 _topic, string memory _description, string memory _extraInfo) public onlyInGoodTimes returns (IMarket _newMarket) {
     require(bytes(_description).length > 0, "Description is empty");
     require(_minPrice < _maxPrice, "Min price needs to be less than max price");
     require(_numTicks.isMultipleOf(2), "numTicks needs to a multiple of 2");
@@ -112,7 +113,7 @@ contract Universe is DelegationTarget, Initializable, ITyped, IUniverse {
     return _newMarket;
   }
 
-  function createMarketInternal(uint256 _endTime, uint256 _feeDivisor, ERC20 _denominationToken, address _oracle, address _sender, uint256 _numOutcomes, uint256 _numTicks) private onlyInGoodTimes returns (IMarket _newMarket) {
+  function createMarketInternal(uint256 _endTime, uint256 _feeDivisor, BEP20 _denominationToken, address _oracle, address _sender, uint256 _numOutcomes, uint256 _numTicks) private onlyInGoodTimes returns (IMarket _newMarket) {
     MarketFactory _marketFactory = MarketFactory(controller.lookup("MarketFactory"));
     _newMarket = _marketFactory.createMarket(controller, this,
       _endTime, _feeDivisor, _denominationToken, _oracle, _sender, _numOutcomes, _numTicks);

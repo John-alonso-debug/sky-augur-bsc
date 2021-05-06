@@ -4,7 +4,7 @@ import 'Controlled.sol';
 import 'IMarket.sol';
 import 'libraries/ReentrancyGuard.sol';
 import 'libraries/MarketValidator.sol';
-import 'libraries/token/ERC20.sol';
+//import 'libraries/token/BEP20.sol1';
 import 'libraries/math/SafeMathUint256.sol';
 
 
@@ -21,7 +21,7 @@ contract ClaimTradingProceeds is ReentrancyGuard, MarketValidator {
     //requiring it here (or modifying this comment and keeping the gas savings)
     require(controller.getTimestamp() > _market.getResolutionTime(), "Resolution time is not in the past");
 
-    ERC20 denominationToken = _market.getDenominationToken();
+    IBEP20 denominationToken = _market.getDenominationToken();
 
     for (uint256 _outcome = 0; _outcome < _market.getNumberOfOutcomes(); ++_outcome) {
       IShareToken _shareToken = _market.getShareToken(_outcome);

@@ -1,10 +1,10 @@
 pragma solidity 0.4.26;
 
 import 'libraries/token/BasicToken.sol';
-import 'libraries/token/ERC20.sol';
+import 'libraries/token/BEP20.sol';
 
 
-contract MockStandardToken is ERC20, BasicToken {
+contract MockStandardToken is BEP20, BasicToken {
   using SafeMathUint256 for uint256;
   address transferFromFromValue;
   address transferFromToValue;

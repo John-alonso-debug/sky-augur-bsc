@@ -8,7 +8,7 @@ import 'libraries/DelegationTarget.sol';
 import 'libraries/ITyped.sol';
 import 'libraries/Initializable.sol';
 import 'libraries/Ownable.sol';
-import 'libraries/token/ERC20.sol';
+import 'libraries/token/BEP20.sol';
 import 'libraries/math/SafeMathUint256.sol';
 import 'libraries/math/SafeMathInt256.sol';
 import 'factories/MailboxFactory.sol';
@@ -28,7 +28,7 @@ contract Market is DelegationTarget, ITyped, Initializable, Ownable, IMarket {
 
   // Contract Refs
   IUniverse private universe;
-  ERC20 private denominationToken;
+  IBEP20 private denominationToken;
 
   // Attributes
   uint256 private numTicks;
@@ -42,7 +42,7 @@ contract Market is DelegationTarget, ITyped, Initializable, Ownable, IMarket {
   uint256[] private payoutNumerators;
   IShareToken[] private shareTokens;
 
-  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feeDivisor, ERC20 _denominationToken,
+  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feeDivisor, IBEP20 _denominationToken,
     address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public onlyInGoodTimes beforeInitialized returns (IShareToken[] memory _shareToken) {
     endInitialization();
     require(MIN_OUTCOMES <= _numOutcomes && _numOutcomes <= MAX_OUTCOMES, "Invalid number of outcomes");
@@ -159,7 +159,7 @@ contract Market is DelegationTarget, ITyped, Initializable, Ownable, IMarket {
     return numTicks;
   }
 
-  function getDenominationToken() public view returns (ERC20) {
+  function getDenominationToken() public view returns (IBEP20) {
     return denominationToken;
   }
 

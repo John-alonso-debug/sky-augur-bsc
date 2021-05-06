@@ -3,7 +3,7 @@ pragma solidity 0.4.26;
 import 'IMarket.sol';
 import 'IUniverse.sol';
 import 'IShareToken.sol';
-import 'libraries/token/ERC20.sol';
+import 'libraries/token/BEP20.sol';
 
 
 contract MaliciousMarket {
@@ -22,7 +22,7 @@ contract MaliciousMarket {
     return victimMarket.getNumberOfOutcomes();
   }
 
-  function getDenominationToken() public view returns (ERC20) {
+  function getDenominationToken() public view returns (BEP20) {
     return victimMarket.getDenominationToken();
   }
 

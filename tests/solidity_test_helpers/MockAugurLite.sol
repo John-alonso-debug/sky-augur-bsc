@@ -1,7 +1,7 @@
 pragma solidity 0.4.26;
 
 import 'Controlled.sol';
-import 'libraries/token/ERC20.sol';
+import 'libraries/token/BEP20.sol';
 import 'IUniverse.sol';
 import 'IMarket.sol';
 import 'IShareToken.sol';
@@ -14,7 +14,7 @@ contract MockAugurLite is Controlled {
     logMarketResolvedCalledValue = false;
   }
 
-  function trustedTransfer(ERC20 _token, address _from, address _to, uint256 _amount) public onlyWhitelistedCallers returns (bool) {
+  function trustedTransfer(BEP20 _token, address _from, address _to, uint256 _amount) public onlyWhitelistedCallers returns (bool) {
     return true;
   }
 

@@ -9,7 +9,7 @@ import 'factories/MarketFactory.sol';
 import 'Controller.sol';
 import 'libraries/Initializable.sol';
 import 'TEST/MockVariableSupplyToken.sol';
-import 'libraries/token/ERC20.sol';
+import 'libraries/token/BEP20.sol';
 
 
 contract MockUniverse is Initializable, IUniverse {
@@ -20,7 +20,7 @@ contract MockUniverse is Initializable, IUniverse {
   MarketFactory private marketFactory;
   Controller private controller;
   bool private addMarketToWasCalledValue;
-  ERC20 private denominationToken;
+  BEP20 private denominationToken;
   /*
   * setters to feed the getters and impl of IUniverse
   */
@@ -36,7 +36,7 @@ contract MockUniverse is Initializable, IUniverse {
     setIsContainerForShareTokenValue = _setIsContainerForShareTokenValue;
   }
 
-  function setDenominationToken(ERC20 _denominationToken) public {
+  function setDenominationToken(BEP20 _denominationToken) public {
     denominationToken = _denominationToken;
   }
 
@@ -47,12 +47,12 @@ contract MockUniverse is Initializable, IUniverse {
     return "Universe";
   }
 
-  function initialize(ERC20 _denominationToken) external returns (bool) {
+  function initialize(BEP20 _denominationToken) external returns (bool) {
     denominationToken = _denominationToken;
     return true;
   }
 
-  function getDenominationToken() public view returns (ERC20) {
+  function getDenominationToken() public view returns (BEP20) {
     return denominationToken;
   }
 

@@ -5,8 +5,8 @@ import 'IUniverse.sol';
 import 'IMailbox.sol';
 import 'libraries/ITyped.sol';
 import 'libraries/IOwnable.sol';
-import 'libraries/token/ERC20.sol';
-
+import 'libraries/token/IBEP20.sol';
+//import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/IBEP20.sol";
 
 contract IMarket is ITyped, IOwnable {
   enum MarketType {
@@ -15,11 +15,12 @@ contract IMarket is ITyped, IOwnable {
     SCALAR
   }
 
-  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feePerEthInAttoeth, ERC20 _denominationToken, address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public returns (IShareToken[] memory _shareToken);
+  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feePerEthInAttoeth, IBEP20 _denominationToken,
+    address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public returns (IShareToken[] memory _shareToken);
   function getUniverse() public view returns (IUniverse);
   function getNumberOfOutcomes() public view returns (uint256);
   function getNumTicks() public view returns (uint256);
-  function getDenominationToken() public view returns (ERC20);
+  function getDenominationToken() public view returns (IBEP20);
   function getShareToken(uint256 _outcome)  public view returns (IShareToken);
   function getMarketCreatorSettlementFeeDivisor() public view returns (uint256);
   function getEndTime() public view returns (uint256);

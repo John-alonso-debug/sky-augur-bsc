@@ -4,9 +4,9 @@ import 'IMailbox.sol';
 import 'IMarket.sol';
 import 'libraries/DelegationTarget.sol';
 import 'libraries/Ownable.sol';
-import 'libraries/token/ERC20Basic.sol';
+import 'libraries/token/IBEP20.sol';
 import 'libraries/Initializable.sol';
-
+//import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/IBEP20.sol";
 
 contract Mailbox is DelegationTarget, Ownable, Initializable, IMailbox {
   IMarket private market;
@@ -18,7 +18,7 @@ contract Mailbox is DelegationTarget, Ownable, Initializable, IMailbox {
     return true;
   }
 
-  function withdrawTokens(ERC20Basic _token) public onlyOwner returns (bool) {
+  function withdrawTokens(IBEP20 _token) public onlyOwner returns (bool) {
     uint256 _balance = _token.balanceOf(address(this));
     require(_token.transfer(owner, _balance), "Token transfer failed");
     return true;

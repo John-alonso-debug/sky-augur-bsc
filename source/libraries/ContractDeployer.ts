@@ -462,7 +462,7 @@ export class ContractDeployer {
       this.connector.gasPrice
     );
     const denominationToken =
-      this.configuration.genesisDenominationTokenAddress ||
+     //this.configuration.genesisDenominationTokenAddress ||
       this.getContract("TestNetDenominationToken").address;
     console.log(
       `Creating genesis universe, with denomination token ${denominationToken}...`

@@ -7,8 +7,8 @@ import 'IMarket.sol';
 import 'libraries/ReentrancyGuard.sol';
 import 'libraries/math/SafeMathUint256.sol';
 import 'libraries/MarketValidator.sol';
-import 'libraries/token/ERC20.sol';
-
+import 'libraries/token/BEP20.sol';
+//import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/BEP20.sol";
 
 contract CompleteSets is Controlled, ReentrancyGuard, MarketValidator, ICompleteSets {
   using SafeMathUint256 for uint256;
@@ -28,7 +28,7 @@ contract CompleteSets is Controlled, ReentrancyGuard, MarketValidator, IComplete
     require(_sender != address(0), "Sender is the 0x0 address");
 
     uint256 _numOutcomes = _market.getNumberOfOutcomes();
-    ERC20 _denominationToken = _market.getDenominationToken();
+    IBEP20 _denominationToken = _market.getDenominationToken();
     IAugurLite _augurLite = controller.getAugurLite();
 
     uint256 _cost = _amount.mul(_market.getNumTicks());
@@ -52,7 +52,7 @@ contract CompleteSets is Controlled, ReentrancyGuard, MarketValidator, IComplete
     require(_sender != address(0), "Sender is the 0x0 address");
 
     uint256 _numOutcomes = _market.getNumberOfOutcomes();
-    ERC20 _denominationToken = _market.getDenominationToken();
+    IBEP20 _denominationToken = _market.getDenominationToken();
     uint256 _payout = _amount.mul(_market.getNumTicks());
     uint256 _creatorFee = _market.deriveMarketCreatorFeeAmount(_payout);
     _payout = _payout.sub(_creatorFee);

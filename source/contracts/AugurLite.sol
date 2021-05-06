@@ -6,9 +6,9 @@ import 'IUniverse.sol';
 import 'IMarket.sol';
 import 'IMailbox.sol';
 import 'IShareToken.sol';
-import 'libraries/token/ERC20.sol';
+import 'libraries/token/IBEP20.sol';
 import 'factories/UniverseFactory.sol';
-
+//import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/IBEP20.sol";
 
 // Centralized approval authority and event emissions
 contract AugurLite is Controlled, IAugurLite {
@@ -23,7 +23,7 @@ contract AugurLite is Controlled, IAugurLite {
 
   event ShareTokenCreated(IShareToken[]  _shareTokens, address _market);
   event MarketResolved(address indexed universe, address indexed market);
-  event UniverseCreated(address indexed universe, ERC20 denominationToken);
+  event UniverseCreated(address indexed universe, IBEP20 denominationToken);
   event CompleteSetsPurchased(address indexed universe, address indexed market, address indexed account, uint256 numCompleteSets);
   event CompleteSetsSold(address indexed universe, address indexed market, address indexed account, uint256 numCompleteSets);
   event TradingProceedsClaimed(address indexed universe, address indexed shareToken, address indexed sender, address market,
@@ -42,9 +42,9 @@ contract AugurLite is Controlled, IAugurLite {
   // Universe
   //
 
-  function createUniverse(ERC20 _denominationToken) public returns (IUniverse) {
+  function createUniverse(IBEP20 _denominationToken) public returns (IUniverse) {
     UniverseFactory _universeFactory = UniverseFactory(controller.lookup("UniverseFactory"));
-    IUniverse _newUniverse = _universeFactory.createUniverse(controller, _denominationToken);
+    IUniverse _newUniverse = _universeFactory.createUniverse(controller, address(_denominationToken));
     //TODO:Fix
     universes[address(_newUniverse)] = true;
     emit UniverseCreated(address(_newUniverse), _denominationToken);
@@ -59,7 +59,7 @@ contract AugurLite is Controlled, IAugurLite {
   // Transfer
   //
 
-  function trustedTransfer(ERC20 _token, address _from, address _to, uint256 _amount) public onlyWhitelistedCallers returns (bool) {
+  function trustedTransfer(IBEP20 _token, address _from, address _to, uint256 _amount) public onlyWhitelistedCallers returns (bool) {
     require(_amount > 0, "Transfer amount needs to be greater than 0");
     require(_token.transferFrom(_from, _to, _amount), "Transfer failed");
     return true;

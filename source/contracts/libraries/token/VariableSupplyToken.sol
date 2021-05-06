@@ -2,9 +2,9 @@ pragma solidity 0.5.16;
 
 import 'libraries/token/StandardToken.sol';
 
-
+//import 'libraries/token/SafeMath.sol';
 contract VariableSupplyToken is StandardToken {
-  using SafeMathUint256 for uint256;
+  using SafeMath for uint256;
 
   event Mint(address indexed target, uint256 value);
   event Burn(address indexed target, uint256 value);
@@ -38,8 +38,8 @@ contract VariableSupplyToken is StandardToken {
   }
 
   // Subclasses of this token may want to send additional logs through the centralized AugurLite log emitter contract
-  function onMint(address, uint256) internal returns (bool);
+  function onMint(address, uint256)  internal  returns (bool);
 
   // Subclasses of this token may want to send additional logs through the centralized AugurLite log emitter contract
-  function onBurn(address, uint256) internal returns (bool);
+  function onBurn(address, uint256) internal  returns (bool);
 }

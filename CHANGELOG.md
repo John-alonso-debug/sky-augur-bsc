@@ -93,7 +93,7 @@ This is a list of contract modifications. If a contract name is not listed, it m
     -   `ClaimTradingProceeds.sol`
         -   Originally located in `source/contract/trading/ClaimTradingProceeds.sol`
         -   `IClaimingTradingProceeds.sol` import was removed as it was empty.
-        -   Changed `ICash` to generic `ERC20` library.
+        -   Changed `ICash` to generic `BEP20` library.
         -   Because there are no reporter fees, `calculateReporterFee` is removed, and `divideUpWinnings` only calls `calculateCreatorFee` for fees.
         -   `logTradingProceedsClaimed` uses the balance of the sender for the market denomination token, instead of their ETH balance.
     -   `CompleteSets.sol`
@@ -104,7 +104,7 @@ This is a list of contract modifications. If a contract name is not listed, it m
         -   `sellCompleteSets` doesn't deal with `reporterFee`, and only takes `creatorFee` into account. It returns a success boolean, instead of `creatorFee` and `reporterFee`.
 -   factories/
     -   `MarketFactory.sol`
-        -   Changed `ICash` to generic `ERC20` library.
+        -   Changed `ICash` to generic `BEP20` library.
         -   Removed the requirement for the reputation token transfer as it isn't used.
         -   `designatedReporterAddress` is renamed to `oracle`.
     -   `UniverseFactory.sol`
@@ -179,8 +179,8 @@ This is the list of contracts that have been removed. Majority of the deletions 
         -   ReputationTokenFactory
     -   legacy_reputation/
         -   BasicToken
-        -   ERC20
-        -   ERC20Basic
+        -   BEP20
+        -   BEP20Basic
         -   Initializable
         -   LegacyRepToken
         -   OwnablePausable

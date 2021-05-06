@@ -1,80 +1,191 @@
 pragma solidity 0.5.16;
 
-library SafeMathUint256 {
-  function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-    uint256 c = a * b;
-    require(a == 0 || c / a == b, "Multiplication failed");
-    return c;
-  }
-
-  function div(uint256 a, uint256 b) internal pure returns (uint256) {
-    // Solidity only automatically asserts when dividing by 0
-    require(b > 0, "Divisor should at least be 0");
-    uint256 c = a / b;
-    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
-    return c;
-  }
-
-  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-    require(b <= a, "Subtraction yields negative value");
-    return a - b;
-  }
-
+library SafeMath {
+  /**
+   * @dev Returns the addition of two unsigned integers, reverting on
+   * overflow.
+   *
+   * Counterpart to Solidity's `+` operator.
+   *
+   * Requirements:
+   *
+   * - Addition cannot overflow.
+   */
   function add(uint256 a, uint256 b) internal pure returns (uint256) {
     uint256 c = a + b;
-    require(c >= a, "Addition failed");
+    require(c >= a, 'SafeMath: addition overflow');
+
     return c;
   }
 
-  function min(uint256 a, uint256 b) internal pure returns (uint256) {
-    if (a <= b) {
-      return a;
-    } else {
-      return b;
+  /**
+   * @dev Returns the subtraction of two unsigned integers, reverting on
+   * overflow (when the result is negative).
+   *
+   * Counterpart to Solidity's `-` operator.
+   *
+   * Requirements:
+   *
+   * - Subtraction cannot overflow.
+   */
+  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+    return sub(a, b, 'SafeMath: subtraction overflow');
+  }
+
+  /**
+   * @dev Returns the subtraction of two unsigned integers, reverting with custom message on
+   * overflow (when the result is negative).
+   *
+   * Counterpart to Solidity's `-` operator.
+   *
+   * Requirements:
+   *
+   * - Subtraction cannot overflow.
+   */
+  function sub(
+    uint256 a,
+    uint256 b,
+    string memory errorMessage
+  ) internal pure returns (uint256) {
+    require(b <= a, errorMessage);
+    uint256 c = a - b;
+
+    return c;
+  }
+
+  /**
+   * @dev Returns the multiplication of two unsigned integers, reverting on
+   * overflow.
+   *
+   * Counterpart to Solidity's `*` operator.
+   *
+   * Requirements:
+   *
+   * - Multiplication cannot overflow.
+   */
+  function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+    // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
+    // benefit is lost if 'b' is also tested.
+    // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
+    if (a == 0) {
+      return 0;
     }
+
+    uint256 c = a * b;
+    require(c / a == b, 'SafeMath: multiplication overflow');
+
+    return c;
   }
 
-  function max(uint256 a, uint256 b) internal pure returns (uint256) {
-    if (a >= b) {
-      return a;
-    } else {
-      return b;
+  /**
+   * @dev Returns the integer division of two unsigned integers. Reverts on
+   * division by zero. The result is rounded towards zero.
+   *
+   * Counterpart to Solidity's `/` operator. Note: this function uses a
+   * `revert` opcode (which leaves remaining gas untouched) while Solidity
+   * uses an invalid opcode to revert (consuming all remaining gas).
+   *
+   * Requirements:
+   *
+   * - The divisor cannot be zero.
+   */
+  function div(uint256 a, uint256 b) internal pure returns (uint256) {
+    return div(a, b, 'SafeMath: division by zero');
+  }
+
+  /**
+   * @dev Returns the integer division of two unsigned integers. Reverts with custom message on
+   * division by zero. The result is rounded towards zero.
+   *
+   * Counterpart to Solidity's `/` operator. Note: this function uses a
+   * `revert` opcode (which leaves remaining gas untouched) while Solidity
+   * uses an invalid opcode to revert (consuming all remaining gas).
+   *
+   * Requirements:
+   *
+   * - The divisor cannot be zero.
+   */
+  function div(
+    uint256 a,
+    uint256 b,
+    string memory errorMessage
+  ) internal pure returns (uint256) {
+    require(b > 0, errorMessage);
+    uint256 c = a / b;
+    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+
+    return c;
+  }
+
+  /**
+   * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
+   * Reverts when dividing by zero.
+   *
+   * Counterpart to Solidity's `%` operator. This function uses a `revert`
+   * opcode (which leaves remaining gas untouched) while Solidity uses an
+   * invalid opcode to revert (consuming all remaining gas).
+   *
+   * Requirements:
+   *
+   * - The divisor cannot be zero.
+   */
+  function mod(uint256 a, uint256 b) internal pure returns (uint256) {
+    return mod(a, b, 'SafeMath: modulo by zero');
+  }
+
+  /**
+   * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
+   * Reverts with custom message when dividing by zero.
+   *
+   * Counterpart to Solidity's `%` operator. This function uses a `revert`
+   * opcode (which leaves remaining gas untouched) while Solidity uses an
+   * invalid opcode to revert (consuming all remaining gas).
+   *
+   * Requirements:
+   *
+   * - The divisor cannot be zero.
+   */
+  function mod(
+    uint256 a,
+    uint256 b,
+    string memory errorMessage
+  ) internal pure returns (uint256) {
+    require(b != 0, errorMessage);
+    return a % b;
+  }
+
+  function min(uint256 x, uint256 y) internal pure returns (uint256 z) {
+    z = x < y ? x : y;
+  }
+
+  // babylonian method (https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method)
+  function sqrt(uint256 y) internal pure returns (uint256 z) {
+    if (y > 3) {
+      z = y;
+      uint256 x = y / 2 + 1;
+      while (x < z) {
+        z = x;
+        x = (y / x + x) / 2;
+      }
+    } else if (y != 0) {
+      z = 1;
     }
-  }
-
-  function getUint256Min() internal pure returns (uint256) {
-    return 0;
-  }
-
-  function getUint256Max() internal pure returns (uint256) {
-    return 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-  }
-
-  function isMultipleOf(uint256 a, uint256 b) internal pure returns (bool) {
-    return a % b == 0;
   }
 }
 
-contract ERC20Basic {
-  event Transfer(address indexed from, address indexed to, uint256 value);
-
-  function balanceOf(address _who) public view returns (uint256);
-  function transfer(address _to, uint256 _value) public returns (bool);
-  function totalSupply() public view returns (uint256);
-}
-
-contract BasicToken is ERC20Basic {
-  using SafeMathUint256 for uint256;
+contract BasicToken  {
+  using SafeMath for uint256;
 
   uint256 internal supply;
   mapping(address => uint256) internal balances;
 
+  event Transfer(address indexed from, address indexed to, uint256 value);
   /**
   * @dev transfer token for a specified address
   * @param _to The address to transfer to.
   * @param _value The amount to be transferred.
   */
-  function transfer(address _to, uint256 _value) public returns(bool) {
+  function transfer(address _to, uint256 _value) public  returns(bool) {
     return internalTransfer(msg.sender, _to, _value);
   }
 
@@ -108,16 +219,10 @@ contract BasicToken is ERC20Basic {
   function onTokenTransfer(address _from, address _to, uint256 _value) internal returns (bool);
 }
 
-contract ERC20 is ERC20Basic {
-  event Approval(address indexed owner, address indexed spender, uint256 value);
-
-  function allowance(address _owner, address _spender) public view returns (uint256);
-  function transferFrom(address _from, address _to, uint256 _value) public returns (bool);
-  function approve(address _spender, uint256 _value) public returns (bool);
-}
-
-contract StandardToken is ERC20, BasicToken {
-  using SafeMathUint256 for uint256;
+contract StandardToken is  BasicToken {
+//contract StandardToken is BEP20, BasicToken {
+  //using SafeMathUint256 for uint256;
+  using SafeMath for uint256;
 
   // Approvals of this amount are simply considered an everlasting approval which is not decremented when transfers occur
   uint256 public constant ETERNAL_APPROVAL_VALUE = 2 ** 256 - 1;
@@ -130,7 +235,9 @@ contract StandardToken is ERC20, BasicToken {
   * @param _to address The address which you want to transfer to
   * @param _value uint256 the amout of tokens to be transfered
   */
-  function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+
+
+  function transferFrom(address _from, address _to, uint256 _value) public  returns (bool) {
     uint256 _allowance = allowed[_from][msg.sender];
 
     if (_allowance != ETERNAL_APPROVAL_VALUE) {
@@ -191,13 +298,13 @@ contract StandardToken is ERC20, BasicToken {
 
   function approveInternal(address _owner, address _spender, uint256 _value) internal returns (bool) {
     allowed[_owner][_spender] = _value;
-    emit Approval(_owner, _spender, _value);
+    //emit Approval(_owner, _spender, _value);
     return true;
   }
 }
 
 contract VariableSupplyToken is StandardToken {
-  using SafeMathUint256 for uint256;
+  using SafeMath for uint256;
 
   event Mint(address indexed target, uint256 value);
   event Burn(address indexed target, uint256 value);
@@ -231,9 +338,9 @@ contract VariableSupplyToken is StandardToken {
   }
 
   // Subclasses of this token may want to send additional logs through the centralized AugurLite log emitter contract
-  function onMint(address, uint256) internal returns (bool);
+  function onMint(address, uint256)  internal  returns (bool);
 
   // Subclasses of this token may want to send additional logs through the centralized AugurLite log emitter contract
-  function onBurn(address, uint256) internal returns (bool);
+  function onBurn(address, uint256) internal  returns (bool);
 }
 

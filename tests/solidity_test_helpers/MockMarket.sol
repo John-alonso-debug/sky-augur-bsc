@@ -4,7 +4,7 @@ import 'IMarket.sol';
 import 'IUniverse.sol';
 import 'IMailbox.sol';
 import 'libraries/ITyped.sol';
-import 'libraries/token/ERC20.sol';
+import 'libraries/token/BEP20.sol';
 
 
 contract MockMarket is IMarket {
@@ -12,7 +12,7 @@ contract MockMarket is IMarket {
   bytes32 private derivePayoutDistributionHashValue;
   uint256 private numberOfOutcomes;
   uint256 private numTicks;
-  ERC20 private denominationToken;
+  BEP20 private denominationToken;
   IShareToken private shareToken;
   address private oracle;
   uint256 private marketCreatorSettlementFeeDivisor;
@@ -27,7 +27,7 @@ contract MockMarket is IMarket {
   uint256 private initializeNumOutcomesValue;
   uint256 private initializeNumTicksValue;
   uint256 private initializeFeePerEthInAttoethValue;
-  ERC20 private initializeTokenValue;
+  BEP20 private initializeTokenValue;
   address private initializeCreatorValue;
   IMailbox private setMarketCreatorMailbox;
   /*
@@ -49,7 +49,7 @@ contract MockMarket is IMarket {
     numTicks = _numTicks;
   }
 
-  function setDenominationToken(ERC20 _denominationToken) public {
+  function setDenominationToken(BEP20 _denominationToken) public {
     denominationToken = _denominationToken;
   }
 
@@ -105,7 +105,7 @@ contract MockMarket is IMarket {
     return initializeFeePerEthInAttoethValue;
   }
 
-  function getInitializeTokenValue() public view returns(ERC20) {
+  function getInitializeTokenValue() public view returns(BEP20) {
     return initializeTokenValue;
   }
 
@@ -132,7 +132,7 @@ contract MockMarket is IMarket {
     return "Market";
   }
 
-  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feePerEthInAttoeth, ERC20 _token, address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public returns (bool _success) {
+  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feePerEthInAttoeth, BEP20 _token, address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public returns (bool _success) {
     initializeUniverseValue = _universe;
     initializeEndTime = _endTime;
     initializeNumOutcomesValue = _numOutcomes;
@@ -160,7 +160,7 @@ contract MockMarket is IMarket {
     return numTicks;
   }
 
-  function getDenominationToken() public view returns (ERC20) {
+  function getDenominationToken() public view returns (BEP20) {
     return denominationToken;
   }
 

@@ -2,7 +2,7 @@ pragma solidity 0.5.16;
 
 contract IAugurLite {
   function isKnownUniverse(IUniverse _universe) public view returns (bool);
-  function trustedTransfer(ERC20 _token, address _from, address _to, uint256 _amount) public returns (bool);
+  function trustedTransfer(IBEP20 _token, address _from, address _to, uint256 _amount) public returns (bool);
   function logMarketCreated(
     bytes32 _topic,
     string memory _description,
@@ -120,11 +120,12 @@ contract IMarket is ITyped, IOwnable {
     SCALAR
   }
 
-  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feePerEthInAttoeth, ERC20 _denominationToken, address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public returns (IShareToken[] memory _shareToken);
+  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feePerEthInAttoeth, IBEP20 _denominationToken,
+    address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public returns (IShareToken[] memory _shareToken);
   function getUniverse() public view returns (IUniverse);
   function getNumberOfOutcomes() public view returns (uint256);
   function getNumTicks() public view returns (uint256);
-  function getDenominationToken() public view returns (ERC20);
+  function getDenominationToken() public view returns (IBEP20);
   function getShareToken(uint256 _outcome)  public view returns (IShareToken);
   function getMarketCreatorSettlementFeeDivisor() public view returns (uint256);
   function getEndTime() public view returns (uint256);
@@ -140,8 +141,8 @@ contract IMarket is ITyped, IOwnable {
 }
 
 contract IUniverse is ITyped {
-  function initialize(ERC20 _denominationToken) external returns (bool);
-  function getDenominationToken() public view returns (ERC20);
+  function initialize(address _denominationToken) external returns (bool);
+  function getDenominationToken() public view returns (IBEP20);
   function isContainerForMarket(IMarket _shadyTarget) public view returns (bool);
   function isContainerForShareToken(IShareToken _shadyTarget) public view returns (bool);
 }
@@ -169,123 +170,345 @@ contract Initializable {
   }
 }
 
-library SafeMathUint256 {
-  function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-    uint256 c = a * b;
-    require(a == 0 || c / a == b, "Multiplication failed");
-    return c;
+contract Context {
+  // Empty internal constructor, to prevent people from mistakenly deploying
+  // an instance of this contract, which should be used via inheritance.
+  constructor() internal {}
+
+  function _msgSender() internal view returns (address payable) {
+    return msg.sender;
   }
 
-  function div(uint256 a, uint256 b) internal pure returns (uint256) {
-    // Solidity only automatically asserts when dividing by 0
-    require(b > 0, "Divisor should at least be 0");
-    uint256 c = a / b;
-    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
-    return c;
+  function _msgData() internal view returns (bytes memory) {
+    this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
+    return msg.data;
+  }
+}
+
+contract OwnableX is Context {
+  address private _owner;
+
+  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+  /**
+   * @dev Initializes the contract setting the deployer as the initial owner.
+   */
+  constructor() internal {
+    address msgSender = _msgSender();
+    _owner = msgSender;
+    emit OwnershipTransferred(address(0), msgSender);
   }
 
-  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-    require(b <= a, "Subtraction yields negative value");
-    return a - b;
+  /**
+   * @dev Returns the address of the current owner.
+   */
+  function owner() public view returns (address) {
+    return _owner;
   }
 
+  /**
+   * @dev Throws if called by any account other than the owner.
+   */
+  modifier onlyOwner() {
+    require(_owner == _msgSender(), 'Ownable: caller is not the owner');
+    _;
+  }
+
+  /**
+   * @dev Leaves the contract without owner. It will not be possible to call
+   * `onlyOwner` functions anymore. Can only be called by the current owner.
+   *
+   * NOTE: Renouncing ownership will leave the contract without an owner,
+   * thereby removing any functionality that is only available to the owner.
+   */
+  function renounceOwnership() public onlyOwner {
+    emit OwnershipTransferred(_owner, address(0));
+    _owner = address(0);
+  }
+
+  /**
+   * @dev Transfers ownership of the contract to a new account (`newOwner`).
+   * Can only be called by the current owner.
+   */
+  function transferOwnership(address newOwner) public onlyOwner {
+    _transferOwnership(newOwner);
+  }
+
+  /**
+   * @dev Transfers ownership of the contract to a new account (`newOwner`).
+   */
+  function _transferOwnership(address newOwner) internal {
+    require(newOwner != address(0), 'Ownable: new owner is the zero address');
+    emit OwnershipTransferred(_owner, newOwner);
+    _owner = newOwner;
+  }
+}
+
+library SafeMath {
+  /**
+   * @dev Returns the addition of two unsigned integers, reverting on
+   * overflow.
+   *
+   * Counterpart to Solidity's `+` operator.
+   *
+   * Requirements:
+   *
+   * - Addition cannot overflow.
+   */
   function add(uint256 a, uint256 b) internal pure returns (uint256) {
     uint256 c = a + b;
-    require(c >= a, "Addition failed");
+    require(c >= a, 'SafeMath: addition overflow');
+
     return c;
   }
 
-  function min(uint256 a, uint256 b) internal pure returns (uint256) {
-    if (a <= b) {
-      return a;
-    } else {
-      return b;
+  /**
+   * @dev Returns the subtraction of two unsigned integers, reverting on
+   * overflow (when the result is negative).
+   *
+   * Counterpart to Solidity's `-` operator.
+   *
+   * Requirements:
+   *
+   * - Subtraction cannot overflow.
+   */
+  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+    return sub(a, b, 'SafeMath: subtraction overflow');
+  }
+
+  /**
+   * @dev Returns the subtraction of two unsigned integers, reverting with custom message on
+   * overflow (when the result is negative).
+   *
+   * Counterpart to Solidity's `-` operator.
+   *
+   * Requirements:
+   *
+   * - Subtraction cannot overflow.
+   */
+  function sub(
+    uint256 a,
+    uint256 b,
+    string memory errorMessage
+  ) internal pure returns (uint256) {
+    require(b <= a, errorMessage);
+    uint256 c = a - b;
+
+    return c;
+  }
+
+  /**
+   * @dev Returns the multiplication of two unsigned integers, reverting on
+   * overflow.
+   *
+   * Counterpart to Solidity's `*` operator.
+   *
+   * Requirements:
+   *
+   * - Multiplication cannot overflow.
+   */
+  function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+    // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
+    // benefit is lost if 'b' is also tested.
+    // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
+    if (a == 0) {
+      return 0;
     }
+
+    uint256 c = a * b;
+    require(c / a == b, 'SafeMath: multiplication overflow');
+
+    return c;
   }
 
-  function max(uint256 a, uint256 b) internal pure returns (uint256) {
-    if (a >= b) {
-      return a;
-    } else {
-      return b;
+  /**
+   * @dev Returns the integer division of two unsigned integers. Reverts on
+   * division by zero. The result is rounded towards zero.
+   *
+   * Counterpart to Solidity's `/` operator. Note: this function uses a
+   * `revert` opcode (which leaves remaining gas untouched) while Solidity
+   * uses an invalid opcode to revert (consuming all remaining gas).
+   *
+   * Requirements:
+   *
+   * - The divisor cannot be zero.
+   */
+  function div(uint256 a, uint256 b) internal pure returns (uint256) {
+    return div(a, b, 'SafeMath: division by zero');
+  }
+
+  /**
+   * @dev Returns the integer division of two unsigned integers. Reverts with custom message on
+   * division by zero. The result is rounded towards zero.
+   *
+   * Counterpart to Solidity's `/` operator. Note: this function uses a
+   * `revert` opcode (which leaves remaining gas untouched) while Solidity
+   * uses an invalid opcode to revert (consuming all remaining gas).
+   *
+   * Requirements:
+   *
+   * - The divisor cannot be zero.
+   */
+  function div(
+    uint256 a,
+    uint256 b,
+    string memory errorMessage
+  ) internal pure returns (uint256) {
+    require(b > 0, errorMessage);
+    uint256 c = a / b;
+    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+
+    return c;
+  }
+
+  /**
+   * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
+   * Reverts when dividing by zero.
+   *
+   * Counterpart to Solidity's `%` operator. This function uses a `revert`
+   * opcode (which leaves remaining gas untouched) while Solidity uses an
+   * invalid opcode to revert (consuming all remaining gas).
+   *
+   * Requirements:
+   *
+   * - The divisor cannot be zero.
+   */
+  function mod(uint256 a, uint256 b) internal pure returns (uint256) {
+    return mod(a, b, 'SafeMath: modulo by zero');
+  }
+
+  /**
+   * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
+   * Reverts with custom message when dividing by zero.
+   *
+   * Counterpart to Solidity's `%` operator. This function uses a `revert`
+   * opcode (which leaves remaining gas untouched) while Solidity uses an
+   * invalid opcode to revert (consuming all remaining gas).
+   *
+   * Requirements:
+   *
+   * - The divisor cannot be zero.
+   */
+  function mod(
+    uint256 a,
+    uint256 b,
+    string memory errorMessage
+  ) internal pure returns (uint256) {
+    require(b != 0, errorMessage);
+    return a % b;
+  }
+
+  function min(uint256 x, uint256 y) internal pure returns (uint256 z) {
+    z = x < y ? x : y;
+  }
+
+  // babylonian method (https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method)
+  function sqrt(uint256 y) internal pure returns (uint256 z) {
+    if (y > 3) {
+      z = y;
+      uint256 x = y / 2 + 1;
+      while (x < z) {
+        z = x;
+        x = (y / x + x) / 2;
+      }
+    } else if (y != 0) {
+      z = 1;
     }
-  }
-
-  function getUint256Min() internal pure returns (uint256) {
-    return 0;
-  }
-
-  function getUint256Max() internal pure returns (uint256) {
-    return 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-  }
-
-  function isMultipleOf(uint256 a, uint256 b) internal pure returns (bool) {
-    return a % b == 0;
   }
 }
 
-contract ERC20Basic {
+interface IBEP20 {
+  /**
+   * @dev Returns the amount of tokens in existence.
+   */
+  function totalSupply() external view returns (uint256);
+
+  /**
+   * @dev Returns the token decimals.
+   */
+  function decimals() external view returns (uint8);
+
+  /**
+   * @dev Returns the token symbol.
+   */
+  function symbol() external view returns (string memory);
+
+  /**
+   * @dev Returns the token name.
+   */
+  function name() external view returns (string memory);
+
+  /**
+   * @dev Returns the bep token owner.
+   */
+  function getOwner() external view returns (address);
+
+  /**
+   * @dev Returns the amount of tokens owned by `account`.
+   */
+  function balanceOf(address account) external view returns (uint256);
+
+  /**
+   * @dev Moves `amount` tokens from the caller's account to `recipient`.
+   *
+   * Returns a boolean value indicating whether the operation succeeded.
+   *
+   * Emits a {Transfer} event.
+   */
+  function transfer(address recipient, uint256 amount) external returns (bool);
+
+  /**
+   * @dev Returns the remaining number of tokens that `spender` will be
+   * allowed to spend on behalf of `owner` through {transferFrom}. This is
+   * zero by default.
+   *
+   * This value changes when {approve} or {transferFrom} are called.
+   */
+  function allowance(address _owner, address spender) external view returns (uint256);
+
+  /**
+   * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
+   *
+   * Returns a boolean value indicating whether the operation succeeded.
+   *
+   * IMPORTANT: Beware that changing an allowance with this method brings the risk
+   * that someone may use both the old and the new allowance by unfortunate
+   * transaction ordering. One possible solution to mitigate this race
+   * condition is to first reduce the spender's allowance to 0 and set the
+   * desired value afterwards:
+   * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+   *
+   * Emits an {Approval} event.
+   */
+  function approve(address spender, uint256 amount) external returns (bool);
+
+  /**
+   * @dev Moves `amount` tokens from `sender` to `recipient` using the
+   * allowance mechanism. `amount` is then deducted from the caller's
+   * allowance.
+   *
+   * Returns a boolean value indicating whether the operation succeeded.
+   *
+   * Emits a {Transfer} event.
+   */
+  function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+
+  /**
+   * @dev Emitted when `value` tokens are moved from one account (`from`) to
+   * another (`to`).
+   *
+   * Note that `value` may be zero.
+   */
   event Transfer(address indexed from, address indexed to, uint256 value);
 
-  function balanceOf(address _who) public view returns (uint256);
-  function transfer(address _to, uint256 _value) public returns (bool);
-  function totalSupply() public view returns (uint256);
-}
-
-contract BasicToken is ERC20Basic {
-  using SafeMathUint256 for uint256;
-
-  uint256 internal supply;
-  mapping(address => uint256) internal balances;
-
   /**
-  * @dev transfer token for a specified address
-  * @param _to The address to transfer to.
-  * @param _value The amount to be transferred.
-  */
-  function transfer(address _to, uint256 _value) public returns(bool) {
-    return internalTransfer(msg.sender, _to, _value);
-  }
-
-  /**
-  * @dev allows internal token transfers
-  * @param _from The source address
-  * @param _to The destination address
-  */
-  function internalTransfer(address _from, address _to, uint256 _value) internal returns (bool) {
-    balances[_from] = balances[_from].sub(_value);
-    balances[_to] = balances[_to].add(_value);
-    emit Transfer(_from, _to, _value);
-    onTokenTransfer(_from, _to, _value);
-    return true;
-  }
-
-  /**
-  * @dev Gets the balance of the specified address.
-  * @param _owner The address to query the the balance of.
-  * @return An uint256 representing the amount owned by the passed address.
-  */
-  function balanceOf(address _owner) public view returns (uint256) {
-    return balances[_owner];
-  }
-
-  function totalSupply() public view returns (uint256) {
-    return supply;
-  }
-
-  // Subclasses of this token generally want to send additional logs through the centralized AugurLite log emitter contract
-  function onTokenTransfer(address _from, address _to, uint256 _value) internal returns (bool);
-}
-
-contract ERC20 is ERC20Basic {
+   * @dev Emitted when the allowance of a `spender` for an `owner` is set by
+   * a call to {approve}. `value` is the new allowance.
+   */
   event Approval(address indexed owner, address indexed spender, uint256 value);
-
-  function allowance(address _owner, address _spender) public view returns (uint256);
-  function transferFrom(address _from, address _to, uint256 _value) public returns (bool);
-  function approve(address _spender, uint256 _value) public returns (bool);
 }
 
-contract IShareToken is ITyped, ERC20 {
+contract IShareToken is ITyped, IBEP20 {
   function initialize(IMarket _market, uint256 _outcome) external returns (bool);
   function createShares(address _owner, uint256 _amount) external returns (bool);
   function destroyShares(address, uint256 balance) external returns (bool);
@@ -293,150 +516,301 @@ contract IShareToken is ITyped, ERC20 {
   function getOutcome() external view returns (uint256);
 }
 
-contract StandardToken is ERC20, BasicToken {
-  using SafeMathUint256 for uint256;
+contract BEP20 is Context, IBEP20, OwnableX {
+  using SafeMath for uint256;
 
-  // Approvals of this amount are simply considered an everlasting approval which is not decremented when transfers occur
-  uint256 public constant ETERNAL_APPROVAL_VALUE = 2 ** 256 - 1;
+  mapping(address => uint256) private _balances;
 
-  mapping (address => mapping (address => uint256)) internal allowed;
+  mapping(address => mapping(address => uint256)) private _allowances;
+
+  uint256 private _totalSupply;
+
+  string private _name;
+  string private _symbol;
+  uint8 private _decimals;
 
   /**
-  * @dev Transfer tokens from one address to another
-  * @param _from address The address which you want to send tokens from
-  * @param _to address The address which you want to transfer to
-  * @param _value uint256 the amout of tokens to be transfered
-  */
-  function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-    uint256 _allowance = allowed[_from][msg.sender];
+   * @dev Sets the values for {name} and {symbol}, initializes {decimals} with
+   * a default value of 18.
+   *
+   * To select a different value for {decimals}, use {_setupDecimals}.
+   *
+   * All three of these values are immutable: they can only be set once during
+   * construction.
+   */
+  constructor(string memory name, string memory symbol) public {
+    _name = name;
+    _symbol = symbol;
+    _decimals = 18;
+  }
 
-    if (_allowance != ETERNAL_APPROVAL_VALUE) {
-      allowed[_from][msg.sender] = _allowance.sub(_value);
-    }
-    internalTransfer(_from, _to, _value);
+  /**
+   * @dev Returns the bep token owner.
+   */
+  function getOwner() external  view returns (address) {
+    return owner();
+  }
+
+  /**
+   * @dev Returns the name of the token.
+   */
+  function name() public view returns (string memory) {
+    return _name;
+  }
+
+  /**
+   * @dev Returns the symbol of the token, usually a shorter version of the
+   * name.
+   */
+  function symbol() public  view returns (string memory) {
+    return _symbol;
+  }
+
+  /**
+  * @dev Returns the number of decimals used to get its user representation.
+  */
+  function decimals() public  view returns (uint8) {
+    return _decimals;
+  }
+
+  /**
+   * @dev See {BEP20-totalSupply}.
+   */
+  function totalSupply() public  view returns (uint256) {
+    return _totalSupply;
+  }
+
+  /**
+   * @dev See {BEP20-balanceOf}.
+   */
+  function balanceOf(address account) public  view returns (uint256) {
+    return _balances[account];
+  }
+
+  /**
+   * @dev See {BEP20-transfer}.
+   *
+   * Requirements:
+   *
+   * - `recipient` cannot be the zero address.
+   * - the caller must have a balance of at least `amount`.
+   */
+  function transfer(address recipient, uint256 amount) public  returns (bool) {
+    _transfer(_msgSender(), recipient, amount);
     return true;
   }
 
   /**
-  * @dev Aprove the passed address to spend the specified amount of tokens on behalf of msg.sender.
-  * @param _spender The address which will spend the funds.
-  * @param _value The amount of tokens to be spent.
-  */
-  function approve(address _spender, uint256 _value) public returns (bool) {
-    approveInternal(msg.sender, _spender, _value);
+   * @dev See {BEP20-allowance}.
+   */
+  function allowance(address owner, address spender) public  view returns (uint256) {
+    return _allowances[owner][spender];
+  }
+
+  /**
+   * @dev See {BEP20-approve}.
+   *
+   * Requirements:
+   *
+   * - `spender` cannot be the zero address.
+   */
+  function approve(address spender, uint256 amount) public  returns (bool) {
+    _approve(_msgSender(), spender, amount);
     return true;
   }
 
   /**
-  * @dev Function to check the amount of tokens that an owner allowed to a spender.
-  * @param _owner address The address which owns the funds.
-  * @param _spender address The address which will spend the funds.
-  * @return A uint256 specifing the amount of tokens still avaible for the spender.
-  */
-  function allowance(address _owner, address _spender) public view returns (uint256 remaining) {
-    return allowed[_owner][_spender];
-  }
-
-  /**
-  * @dev Increase the amount of tokens that an owner allowed to a spender.
-  *
-  * Approve should be called when allowed[_spender] == 0. To increment allowed value is better to use this function to avoid 2 calls (and wait until the first transaction is mined)
-  * @param _spender The address which will spend the funds.
-  * @param _addedValue The amount of tokens to increase the allowance by.
-  */
-  function increaseApproval(address _spender, uint _addedValue) public returns (bool) {
-    approveInternal(msg.sender, _spender, allowed[msg.sender][_spender].add(_addedValue));
+   * @dev See {BEP20-transferFrom}.
+   *
+   * Emits an {Approval} event indicating the updated allowance. This is not
+   * required by the EIP. See the note at the beginning of {BEP20};
+   *
+   * Requirements:
+   * - `sender` and `recipient` cannot be the zero address.
+   * - `sender` must have a balance of at least `amount`.
+   * - the caller must have allowance for `sender`'s tokens of at least
+   * `amount`.
+   */
+  function transferFrom (address sender, address recipient, uint256 amount) public  returns (bool) {
+    _transfer(sender, recipient, amount);
+    _approve(
+      sender,
+      _msgSender(),
+      _allowances[sender][_msgSender()].sub(amount, 'BEP20: transfer amount exceeds allowance')
+    );
     return true;
   }
 
   /**
-  * @dev Decrease the amount of tokens that an owner allowed to a spender.
-  *
-  * approve should be called when allowed[_spender] == 0. To decrement allowed value is better to use this function to avoid 2 calls (and wait until the first transaction is mined)
-  * @param _spender The address which will spend the funds.
-  * @param _subtractedValue The amount of tokens to decrease the allowance by.
-  */
-  function decreaseApproval(address _spender, uint _subtractedValue) public returns (bool) {
-    uint oldValue = allowed[msg.sender][_spender];
-    if (_subtractedValue > oldValue) {
-      approveInternal(msg.sender, _spender, 0);
-    } else {
-      approveInternal(msg.sender, _spender, oldValue.sub(_subtractedValue));
-    }
+   * @dev Atomically increases the allowance granted to `spender` by the caller.
+   *
+   * This is an alternative to {approve} that can be used as a mitigation for
+   * problems described in {BEP20-approve}.
+   *
+   * Emits an {Approval} event indicating the updated allowance.
+   *
+   * Requirements:
+   *
+   * - `spender` cannot be the zero address.
+   */
+  function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
+    _approve(_msgSender(), spender, _allowances[_msgSender()][spender].add(addedValue));
     return true;
   }
 
-  function approveInternal(address _owner, address _spender, uint256 _value) internal returns (bool) {
-    allowed[_owner][_spender] = _value;
-    emit Approval(_owner, _spender, _value);
+  /**
+   * @dev Atomically decreases the allowance granted to `spender` by the caller.
+   *
+   * This is an alternative to {approve} that can be used as a mitigation for
+   * problems described in {BEP20-approve}.
+   *
+   * Emits an {Approval} event indicating the updated allowance.
+   *
+   * Requirements:
+   *
+   * - `spender` cannot be the zero address.
+   * - `spender` must have allowance for the caller of at least
+   * `subtractedValue`.
+   */
+  function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
+    _approve(_msgSender(), spender, _allowances[_msgSender()][spender].sub(subtractedValue, 'BEP20: decreased allowance below zero'));
     return true;
+  }
+
+  /**
+   * @dev Creates `amount` tokens and assigns them to `msg.sender`, increasing
+   * the total supply.
+   *
+   * Requirements
+   *
+   * - `msg.sender` must be the token owner
+   */
+  function mint(uint256 amount) public onlyOwner returns (bool) {
+    _mint(_msgSender(), amount);
+    return true;
+  }
+
+  /**
+   * @dev Moves tokens `amount` from `sender` to `recipient`.
+   *
+   * This is internal function is equivalent to {transfer}, and can be used to
+   * e.g. implement automatic token fees, slashing mechanisms, etc.
+   *
+   * Emits a {Transfer} event.
+   *
+   * Requirements:
+   *
+   * - `sender` cannot be the zero address.
+   * - `recipient` cannot be the zero address.
+   * - `sender` must have a balance of at least `amount`.
+   */
+  function _transfer (address sender, address recipient, uint256 amount) internal {
+    require(sender != address(0), 'BEP20: transfer from the zero address');
+    require(recipient != address(0), 'BEP20: transfer to the zero address');
+
+    _balances[sender] = _balances[sender].sub(amount, 'BEP20: transfer amount exceeds balance');
+    _balances[recipient] = _balances[recipient].add(amount);
+    emit Transfer(sender, recipient, amount);
+  }
+
+  /** @dev Creates `amount` tokens and assigns them to `account`, increasing
+   * the total supply.
+   *
+   * Emits a {Transfer} event with `from` set to the zero address.
+   *
+   * Requirements
+   *
+   * - `to` cannot be the zero address.
+   */
+  function _mint(address account, uint256 amount) internal {
+    require(account != address(0), 'BEP20: mint to the zero address');
+
+    _totalSupply = _totalSupply.add(amount);
+    _balances[account] = _balances[account].add(amount);
+    emit Transfer(address(0), account, amount);
+  }
+
+  /**
+   * @dev Destroys `amount` tokens from `account`, reducing the
+   * total supply.
+   *
+   * Emits a {Transfer} event with `to` set to the zero address.
+   *
+   * Requirements
+   *
+   * - `account` cannot be the zero address.
+   * - `account` must have at least `amount` tokens.
+   */
+  function _burn(address account, uint256 amount) internal {
+    require(account != address(0), 'BEP20: burn from the zero address');
+
+    _balances[account] = _balances[account].sub(amount, 'BEP20: burn amount exceeds balance');
+    _totalSupply = _totalSupply.sub(amount);
+    emit Transfer(account, address(0), amount);
+  }
+
+  /**
+   * @dev Sets `amount` as the allowance of `spender` over the `owner`s tokens.
+   *
+   * This is internal function is equivalent to `approve`, and can be used to
+   * e.g. set automatic allowances for certain subsystems, etc.
+   *
+   * Emits an {Approval} event.
+   *
+   * Requirements:
+   *
+   * - `owner` cannot be the zero address.
+   * - `spender` cannot be the zero address.
+   */
+  function _approve (address owner, address spender, uint256 amount) internal {
+    require(owner != address(0), 'BEP20: approve from the zero address');
+    require(spender != address(0), 'BEP20: approve to the zero address');
+
+    _allowances[owner][spender] = amount;
+    emit Approval(owner, spender, amount);
+  }
+
+  /**
+   * @dev Destroys `amount` tokens from `account`.`amount` is then deducted
+   * from the caller's allowance.
+   *
+   * See {_burn} and {_approve}.
+   */
+  function _burnFrom(address account, uint256 amount) internal {
+    _burn(account, amount);
+    _approve(account, _msgSender(), _allowances[account][_msgSender()].sub(amount, 'BEP20: burn amount exceeds allowance'));
   }
 }
 
-contract VariableSupplyToken is StandardToken {
-  using SafeMathUint256 for uint256;
+contract ShareToken is DelegationTarget, ITyped, Initializable, IShareToken, BEP20{
 
-  event Mint(address indexed target, uint256 value);
-  event Burn(address indexed target, uint256 value);
-
-  /**
-  * @dev mint tokens for a specified address
-  * @param _target The address to mint tokens for.
-  * @param _amount The amount to be minted.
-  */
-  function mint(address _target, uint256 _amount) internal returns (bool) {
-    balances[_target] = balances[_target].add(_amount);
-    supply = supply.add(_amount);
-    emit Mint(_target, _amount);
-    emit Transfer(address(0), _target, _amount);
-    onMint(_target, _amount);
-    return true;
-  }
-
-  /**
-  * @dev burn tokens belonging to a specified address
-  * @param _target The address to burn tokens for.
-  * @param _amount The amount to be burned.
-  */
-  function burn(address _target, uint256 _amount) internal returns (bool) {
-    balances[_target] = balances[_target].sub(_amount);
-    supply = supply.sub(_amount);
-    emit Burn(_target, _amount);
-    emit Transfer(_target, address(0), _amount);
-    onBurn(_target, _amount);
-    return true;
-  }
-
-  // Subclasses of this token may want to send additional logs through the centralized AugurLite log emitter contract
-  function onMint(address, uint256) internal returns (bool);
-
-  // Subclasses of this token may want to send additional logs through the centralized AugurLite log emitter contract
-  function onBurn(address, uint256) internal returns (bool);
-}
-
-contract ShareToken is DelegationTarget, ITyped, Initializable, VariableSupplyToken, IShareToken {
-
-  string constant public name = "Shares";
-  uint8 constant public decimals = 0;
-  string constant public symbol = "SHARE";
+  string  public _name ;
+  uint8  public _decimals ;
+  string  public _symbol ;
 
   IMarket private market;
   uint256 private outcome;
+
+  constructor() BEP20("ShareToken","SHARE") public {
+
+  }
 
   function initialize(IMarket _market, uint256 _outcome) external beforeInitialized returns(bool) {
     endInitialization();
     market = _market;
     outcome = _outcome;
+
+
     return true;
   }
 
   function createShares(address _owner, uint256 _fxpValue) external onlyWhitelistedCallers returns(bool) {
-    mint(_owner, _fxpValue);
+    _mint(_owner, _fxpValue);
     return true;
   }
 
   function destroyShares(address _owner, uint256 _fxpValue) external onlyWhitelistedCallers returns(bool) {
-    burn(_owner, _fxpValue);
+    _burn(_owner, _fxpValue);
     return true;
   }
 

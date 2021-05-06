@@ -1,56 +1,6 @@
-pragma solidity 0.5.16;
+// SPDX-License-Identifier: GPL-3.0-or-later
 
-contract ICompleteSets {
-  function buyCompleteSets(address _sender, IMarket _market, uint256 _amount) external returns (bool);
-  function sellCompleteSets(address _sender, IMarket _market, uint256 _amount) external returns (bool);
-}
-
-contract IMailbox {
-  function initialize(address _owner, IMarket _market) public returns (bool);
-}
-
-contract IOwnable {
-  function getOwner() public view returns (address);
-  function transferOwnership(address newOwner) public returns (bool);
-}
-
-contract ITyped {
-  function getTypeName() public view returns (bytes32);
-}
-
-contract IMarket is ITyped, IOwnable {
-  enum MarketType {
-    YES_NO,
-    CATEGORICAL,
-    SCALAR
-  }
-
-  function initialize(IUniverse _universe, uint256 _endTime, uint256 _feePerEthInAttoeth, IBEP20 _denominationToken,
-    address _oracle, address _creator, uint256 _numOutcomes, uint256 _numTicks) public returns (IShareToken[] memory _shareToken);
-  function getUniverse() public view returns (IUniverse);
-  function getNumberOfOutcomes() public view returns (uint256);
-  function getNumTicks() public view returns (uint256);
-  function getDenominationToken() public view returns (IBEP20);
-  function getShareToken(uint256 _outcome)  public view returns (IShareToken);
-  function getMarketCreatorSettlementFeeDivisor() public view returns (uint256);
-  function getEndTime() public view returns (uint256);
-  function getMarketCreatorMailbox() public view returns (IMailbox);
-  function getPayoutNumerator(uint256 _outcome) public view returns (uint256);
-  function getResolutionTime() public view returns (uint256);
-  function getOracle() public view returns (address);
-  function deriveMarketCreatorFeeAmount(uint256 _amount) public view returns (uint256);
-  function isContainerForShareToken(IShareToken _shadyTarget) public view returns (bool);
-  function isInvalid() public view returns (bool);
-  function isResolved() public view returns (bool);
-  function assertBalances() public view returns (bool);
-}
-
-contract IUniverse is ITyped {
-  function initialize(address _denominationToken) external returns (bool);
-  function getDenominationToken() public view returns (IBEP20);
-  function isContainerForMarket(IMarket _shadyTarget) public view returns (bool);
-  function isContainerForShareToken(IShareToken _shadyTarget) public view returns (bool);
-}
+pragma solidity >=0.4.0;
 
 interface IBEP20 {
   /**
@@ -142,12 +92,3 @@ interface IBEP20 {
    */
   event Approval(address indexed owner, address indexed spender, uint256 value);
 }
-
-contract IShareToken is ITyped, IBEP20 {
-  function initialize(IMarket _market, uint256 _outcome) external returns (bool);
-  function createShares(address _owner, uint256 _amount) external returns (bool);
-  function destroyShares(address, uint256 balance) external returns (bool);
-  function getMarket() external view returns (IMarket);
-  function getOutcome() external view returns (uint256);
-}
-

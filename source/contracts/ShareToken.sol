@@ -1,36 +1,43 @@
-pragma solidity 0.5.16;
+pragma solidity ^0.5.16;
 
 import 'IMarket.sol';
 import 'IShareToken.sol';
 import 'libraries/DelegationTarget.sol';
-import 'libraries/token/VariableSupplyToken.sol';
+//import 'libraries/token/VariableSupplyToken.sol';
 import 'libraries/ITyped.sol';
 import 'libraries/Initializable.sol';
+import 'libraries/token/BEP20.sol';
 
 
-contract ShareToken is DelegationTarget, ITyped, Initializable, VariableSupplyToken, IShareToken {
+contract ShareToken is DelegationTarget, ITyped, Initializable, IShareToken, BEP20{
 
-  string constant public name = "Shares";
-  uint8 constant public decimals = 0;
-  string constant public symbol = "SHARE";
+  string  public _name ;
+  uint8  public _decimals ;
+  string  public _symbol ;
 
   IMarket private market;
   uint256 private outcome;
+
+  constructor() BEP20("ShareToken","SHARE") public {
+
+  }
 
   function initialize(IMarket _market, uint256 _outcome) external beforeInitialized returns(bool) {
     endInitialization();
     market = _market;
     outcome = _outcome;
+
+
     return true;
   }
 
   function createShares(address _owner, uint256 _fxpValue) external onlyWhitelistedCallers returns(bool) {
-    mint(_owner, _fxpValue);
+    _mint(_owner, _fxpValue);
     return true;
   }
 
   function destroyShares(address _owner, uint256 _fxpValue) external onlyWhitelistedCallers returns(bool) {
-    burn(_owner, _fxpValue);
+    _burn(_owner, _fxpValue);
     return true;
   }
 

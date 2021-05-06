@@ -1,6 +1,6 @@
 pragma solidity 0.5.16;
 
-contract ERC20Basic {
+contract BEP20Basic {
   event Transfer(address indexed from, address indexed to, uint256 value);
 
   function balanceOf(address _who) public view returns (uint256);

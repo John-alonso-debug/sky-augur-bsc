@@ -2,12 +2,13 @@ pragma solidity 0.5.16;
 
 import 'IMarket.sol';
 import 'IUniverse.sol';
-import 'libraries/token/ERC20.sol';
-
+import 'libraries/token/IBEP20.sol';
+//import 'libraries/token/BEP20.sol1';
+//import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/IBEP20.sol";
 
 contract IAugurLite {
   function isKnownUniverse(IUniverse _universe) public view returns (bool);
-  function trustedTransfer(ERC20 _token, address _from, address _to, uint256 _amount) public returns (bool);
+  function trustedTransfer(IBEP20 _token, address _from, address _to, uint256 _amount) public returns (bool);
   function logMarketCreated(
     bytes32 _topic,
     string memory _description,
